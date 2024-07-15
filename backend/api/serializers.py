@@ -1,55 +1,56 @@
 from rest_framework import serializers
+from .models import User
 from django.contrib.auth import authenticate
-from rest_framework import serializers
-from rest_framework import serializers
-from .models import CustomUser
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.contrib.auth.models import update_last_login
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
-class UserRegistrationSerializer(serializers.ModelSerializer):
+class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CustomUser
-        fields = ['first_name', 'last_name', 'user_name', 'email', 'phone_number', 'password', 'gender', 'date_of_birth']
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'email', 'password', 'phone_number', 'year_of_birth', 'gender']
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
-        user = CustomUser.objects.create_user(
-            email=validated_data['email'],
-            user_name=validated_data['user_name'],
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            phone_number=validated_data.get('phone_number', ''),
-            gender=validated_data.get('gender', ''),
-            date_of_birth=validated_data.get('date_of_birth', None),
-            password=validated_data['password']
-        )
+        user = User.objects.create_user(**validated_data)
+        user.save()
         return user
-    
 
 
-class UserLoginSerializer(serializers.Serializer):
-    user_login = serializers.CharField()
-    password = serializers.CharField()
+
+
+
+
+class LoginSerializer(TokenObtainPairSerializer):
+    username = serializers.CharField()
+    password = serializers.CharField(write_only=True)
+    token = serializers.CharField(max_length=255, read_only=True)
 
     def validate(self, data):
-        user_login = data.get('user_login')
-        password = data.get('password')
-
-        if user_login and password:
-            # Check if user_login is an email or username
-            if '@' in user_login:
-                user = authenticate(email=user_login, password=password)
-            else:
-                user = authenticate(user_name=user_login, password=password)
-
+        user_login = data.get("username")
+        password = data.get("password")
+        
+        # Check if username is an email
+        if "@" in user_login:
+            user = User.objects.filter(email=user_login).first()
             if user:
-                if not user.is_active:
-                    msg = 'User account is disabled.'
-                    raise serializers.ValidationError(msg)
-                data['user'] = user
-                return data
-            else:
-                msg = 'Unable to log in with provided credentials.'
-                raise serializers.ValidationError(msg)
-        else:
-            msg = 'Must include "username or email" and "password".'
-            raise serializers.ValidationError(msg)    
-    
+                user_login= user.username
+
+        user = authenticate(username=user_login, password=password)
+
+        if user is None:
+            raise serializers.ValidationError('Invalid login credentials.')
+
+        refresh = RefreshToken.for_user(user)
+        token = {
+            'refresh': str(refresh),
+            'access': str(refresh.access_token),
+        }
+
+        update_last_login(None, user)
+
+        return {
+            'username': user.username,
+            'token': token
+        }
+

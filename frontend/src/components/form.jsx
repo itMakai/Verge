@@ -6,7 +6,7 @@ const Form = () => {
     const [formData, setFormData] = useState({
         first_name: '',
         last_name: '',
-        user_name: '',
+        username: '',
         email: '',
         phone_number: '',
         password: '',
@@ -39,7 +39,7 @@ const Form = () => {
                 .post('http://localhost:8000/api/register/', {
                     first_name: formData.first_name,
                     last_name: formData.last_name,
-                    user_name: formData.user_name,
+                    username: formData.user_name,
                     email: formData.email,
                     phone_number: formData.phone_number,
                     password: formData.password,
