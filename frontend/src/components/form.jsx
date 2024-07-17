@@ -4,15 +4,10 @@ import axios from 'axios';
 const Form = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
-        first_name: '',
-        last_name: '',
         username: '',
         email: '',
-        phone_number: '',
         password: '',
-        gender: '',
-        date_of_birth: '',
-        user_login: '',
+
     });
 
     const handleChange = (e) => {
@@ -25,7 +20,7 @@ const Form = () => {
         if (isLogin) {
             axios
                 .post('http://localhost:8000/api/login/', {
-                    user_login: formData.user_login,
+                    username: formData.username,
                     password: formData.password,
                 })
                 .then((response) => {
@@ -36,15 +31,11 @@ const Form = () => {
                 });
         } else {
             axios
-                .post('http://localhost:8000/api/register/', {
-                    first_name: formData.first_name,
-                    last_name: formData.last_name,
-                    username: formData.user_name,
+                .post('http://localhost:8000/api/register/', 
+                    {
+                    username: formData.username,
                     email: formData.email,
-                    phone_number: formData.phone_number,
                     password: formData.password,
-                    gender: formData.gender,
-                    date_of_birth: formData.date_of_birth,
                 })
                 .then((response) => {
                     alert('Registration Successful', response.data);
@@ -61,26 +52,14 @@ const Form = () => {
             <form onSubmit={handleSubmit}>
                 {!isLogin && (
                     <>
-                        <input
-                            type="text"
-                            placeholder="First Name"
-                            value={formData.first_name}
-                            onChange={handleChange}
-                            name="first_name"
-                        />
-                        <input
-                            type="text"
-                            placeholder="Last Name"
-                            value={formData.last_name}
-                            onChange={handleChange}
-                            name="last_name"
-                        />
+
                         <input
                             type="text"
                             placeholder="Username"
-                            value={formData.user_name}
+                            value={formData.username}
                             onChange={handleChange}
-                            name="user_name"
+                            name="username"
+                            required
                         />
                         <input
                             type="email"
@@ -88,36 +67,17 @@ const Form = () => {
                             value={formData.email}
                             onChange={handleChange}
                             name="email"
+                            required
                         />
-                        <input
-                            type="text"
-                            placeholder="Phone Number"
-                            value={formData.phone_number}
-                            onChange={handleChange}
-                            name="phone_number"
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            name="password"
-                        />
-                        <input
-                            type="date"
-                            placeholder="Date of Birth"
-                            value={formData.date_of_birth}
-                            onChange={handleChange}
-                            name="date_of_birth"
-                        />
+                        <input type="password" placeholder='password' onChange={handleChange} name='password' required/>
                     </>
                 )}
 
                 {isLogin && (
                     <input
                         type="text"
-                        name="user_login"
-                        placeholder="Username or Email"
+                        name="username"
+                        placeholder="Username"
                         value={formData.user_login}
                         onChange={handleChange}
                         required
